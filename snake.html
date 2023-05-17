@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<h1>SNAKE GAME BY ZULFIQAR</h1>
+  <title>Simple & Sophisticated Snake Game</title>
+  <style>
+    body {
+      background: linear-gradient(45deg, #ff00cc, #800080);
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #game-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #game-canvas {
+      background-color: #ffffff;
+      border: 1px solid #000000;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="600" height="400"></canvas>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Game Constants
+      const canvas = document.getElementById("game-canvas");
+      const context = canvas.getContext("2d");
+      const gridSize = 20;
+      const gridWidth = canvas.width / gridSize;
+      const gridHeight = canvas.height / gridSize;
+      const initialSnakeLength = 4;
+      const initialSnakeX = Math.floor(gridWidth / 2);
+      const initialSnakeY = Math.floor(gridHeight / 2);
+      const snakeColor = "#00ff00";
+      const foodColor = "#ff0000";
+
+      // Game Variables
+      let snake = [];
+      let food = {};
+      let direction = "right";
+      let score = 0;
+      let isGameOver = false;
+
+      // Initialize the game
+      function init() {
+        snake = [];
+        for (let i = initialSnakeLength - 1; i >= 0; i--) {
+          snake.push({ x: i, y: initialSnakeY });
+        }
+        generateFood();
+        direction = "right";
+        score = 0;
+        isGameOver = false;
+        draw();
+        setInterval(update, 100);
+      }
+
+      // Generate food at random position
+      function generateFood() {
+        food = {
+          x: Math.floor(Math.random() * gridWidth),
+          y: Math.floor(Math.random() * gridHeight),
+        };
+      }
+
+      // Handle keyboard input
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowUp" && direction !== "down") {
+          direction = "up";
+        } else if (event.key === "ArrowDown" && direction !== "up") {
+          direction = "down";
+        } else if (event.key === "ArrowLeft" && direction !== "right") {
+          direction = "left";
+        } else if (event.key === "ArrowRight" && direction !== "left") {
+          direction = "right";
+        }
+      });
+
+      // Update game state
+      function update() {
+        if (isGameOver) return;
+
+        const head = { x: snake[0].x, y: snake[0].y };
+
+        switch (direction) {
+          case "up":
+            head.y--;
+            break;
+          case "down":
+            head.y++;
+            break;
+          case "left":
+            head.x--;
+            break;
+          case "right":
+            head.x++;
+            break;
+        }
+
+        // Check collision with walls or snake's body
+        if (
+          head.x < 0 ||
+          head.x >= gridWidth ||
+          head.y < 0 ||
+          head.y >= gridHeight ||
+          checkCollision(head)
+        ) {
+          isGameOver = true;
+          return;
+        }
+
+        snake.unshift(head);
+
+        // Check if snake ate the food
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          generateFood();
+        } else {
+          snake.pop();
+        }
+
+        draw();
+      }
+
+      // Check collision with snake's body
+      function checkCollision(head) {
+        return snake.some((segment, index) => {
+          if (index === 0) return false;
+          return segment.x === head.x && segment.y === head.y;
+        });
+      }
+
+      // Draw game elements
+      function draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw snake
+        snake.forEach((segment) => {
+          context.fillStyle = snakeColor;
+          context.fillRect(
+            segment.x * gridSize,
+            segment.y * gridSize,
+            gridSize,
+            gridSize
+          );
+        });
+
+        // Draw food
+        context.fillStyle = foodColor;
+        context.fillRect(
+          food.x * gridSize,
+          food.y * gridSize,
+          gridSize,
+          gridSize
+        );
+
+        // Draw score
+        context.fillStyle = "#ffffff";
+        context.font = "20px Arial";
+        context.fillText("Score: " + score, 10, 25);
+
+        if (isGameOver) {
+          context.fillStyle = "#ffffff";
+          context.font = "30px Arial";
+          context.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2);
+        }
+      }
+
+      // Start the game
+      init();
+    });
+  </script>
+</body>
+</html>
